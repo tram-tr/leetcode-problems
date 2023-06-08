@@ -1,5 +1,7 @@
 import string
 class Solution:
+    # Time: O(N)
+    # Space: O(1)
     def isAnagram(self, s: str, t: str) -> bool:
         if (len(s) != len(t)):
             return False
