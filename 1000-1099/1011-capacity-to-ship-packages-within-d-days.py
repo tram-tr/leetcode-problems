@@ -1,4 +1,4 @@
-# https://leetcode.com/problems/minimum-number-of-days-to-make-m-bouquets/description/
+https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/
 
 class Solution:
     def shipWithinDays(self, weights: List[int], days: int) -> int:
