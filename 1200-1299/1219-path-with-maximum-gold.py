@@ -18,10 +18,17 @@ class Solution:
             grid[row][col] = val
             return curr + val
 
+        total_gold = 0
+        for row in range(len(grid)):
+            for col in range(len(grid[0])):
+                total_gold += grid[row][col]
+
         res = 0
         for row in range(len(grid)):
             for col in range(len(grid[0])):
                 if grid[row][col] != 0:
                     res = max(res, dfs(row, col))
+                    if res == total_gold:
+                        return res
             
         return res
