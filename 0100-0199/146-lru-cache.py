@@ -1,7 +1,7 @@
 # https://leetcode.com/problems/lru-cache/
 
 class Node:
-    def __init__(self, key=0, val=0):
+    def __init__(self, key: int, val: int):
         self.key = key
         self.val = val
         self.prev = None
@@ -9,59 +9,67 @@ class Node:
 
 class LRUCache:
 
+    # maintain the order of the data because if we have more data than capacity, we have to remove LRU data 
+    # using queue would be hard to keep track the Most Recently Used order if the problem is asking for O(1)
+    
     def __init__(self, capacity: int):
-        self.cache = {}
-        self.head = Node()
-        self.tail = Node()
         self.capacity = capacity
-        self.size = 0
-        self.head.next = self.tail
-        self.tail.prev = self.head
+        self.cache = defaultdict(int)
+        self.dummy_lru = Node(0, 0) # least recently used
+        self.dummy_mru = Node(0, 0) # most recently used
+        # link nodes
+        '''
+        dummy lru (None) <-> lru <-> ... <-> mru <-> dummy_mru (None)
+        '''
+        self.dummy_lru.next = self.dummy_mru
+        self.dummy_mru.prev = self.dummy_lru        
 
+    # return the value of the key if the key exists
     def get(self, key: int) -> int:
-        if key not in self.cache:
-            return -1
-
-        node = self.cache[key]
-        self.move_head(node)
-
-        return node.val
-
+        if key in self.cache: # if key exists
+            # evict the key
+            self.remove(self.cache[key]) # remove key at current position
+            self.insert(self.cache[key]) # add key to the tail of the linked list
+            return self.cache[key].val
+        return -1
+        
+    
     def put(self, key: int, value: int) -> None:
-        if key in self.cache:
-            node = self.cache[key]
-            node.val = value
-            self.move_head(node)
+        if key in self.cache: # if key exists
+            self.remove(self.cache[key]) # remove key at the current position to evict
+        # insert the key-value pair to the cache and linked list
+        self.cache[key] = Node(key, value)
+        self.insert(self.cache[key])
 
-        else:
-            node = Node(key, value)
-            self.cache[key] = node
-            self.add_head(node)
-            self.size += 1
+        # check the capacity
+        if len(self.cache) > self.capacity:
+            # remove the least recently used key
+            lru = self.dummy_lru.next 
+            self.remove(lru)
+            del self.cache[lru.key]
 
-            if self.size > self.capacity:
-                tail = self.remove_tail()
-                self.cache.pop(tail.key)
-                self.size -= 1
+    def insert(self, node: Node) -> None: # to insert update the most recently used key
+        '''
+        before: ... <-> prev_mru <-> None
+        after: ... <-> prev_mru <-> node <-> None
 
-    def move_head(self, node):
-        self.remove_node(node)
-        self.add_head(node)
-
-    def remove_node(self, node):
-        node.prev.next = node.next
-        node.next.prev = node.prev
-
-    def add_head(self, node):
-        node.next = self.head.next
-        node.prev = self.head
-        self.head.next = node
-        node.next.prev = node
-
-    def remove_tail(self):
-        node = self.tail.prev
-        self.remove_node(node)
-        return node
+        '''
+        prev_mru = self.dummy_mru.prev
+        dummy = self.dummy_mru # dummy tail
+        prev_mru.next = node
+        dummy.prev = node
+        node.next = dummy
+        node.prev = prev_mru
+        
+    def remove(self, node: Node) -> None:
+        '''
+        before: ... <-> prev node <-> node <-> next node <-> ...
+        after: ... <-> prev node <-> next node <-> ...
+        '''
+        prev = node.prev
+        nxt = node.next
+        prev.next = nxt
+        nxt.prev = prev
 
 
 # Your LRUCache object will be instantiated and called as such:
